@@ -8,4 +8,4 @@ Windows 桌面倒计时小卡片。
 - 四种语言：中文、日本語、EN、한국어
 - 单文件，免安装，不联网
 
-下载：https://offwork.guyu23.xyz/download/OffWorkCountdown.exe
+下载：https://when-off.guyu23.xyz/download/OffWorkCountdown.exe
