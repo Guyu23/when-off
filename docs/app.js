@@ -9,7 +9,7 @@
       },
       brand: "几时下班",
       skip: "跳到主要内容",
-      nav: { brandAria: "几时下班，回到顶部", lang: "语言", download: "下载" },
+      nav: { brandAria: "几时下班，回到顶部", lang: "语言" },
       hero: {
         title: "漂亮的计时卡片",
         download: "下载 Windows 版",
@@ -78,7 +78,7 @@
       },
       brand: "When Off",
       skip: "Skip to content",
-      nav: { brandAria: "When Off, back to top", lang: "Language", download: "Download" },
+      nav: { brandAria: "When Off, back to top", lang: "Language" },
       hero: {
         title: "A pretty little timer.",
         download: "Download for Windows",
@@ -147,7 +147,7 @@
       },
       brand: "何時に退勤",
       skip: "本文へ",
-      nav: { brandAria: "何時に退勤、トップへ", lang: "言語", download: "ダウンロード" },
+      nav: { brandAria: "何時に退勤、トップへ", lang: "言語" },
       hero: {
         title: "きれいなタイマーカード。",
         download: "Windows 版をダウンロード",
@@ -216,7 +216,7 @@
       },
       brand: "몇 시 퇴근",
       skip: "본문으로",
-      nav: { brandAria: "몇 시 퇴근, 맨 위로", lang: "언어", download: "다운로드" },
+      nav: { brandAria: "몇 시 퇴근, 맨 위로", lang: "언어" },
       hero: {
         title: "예쁜 타이머 카드.",
         download: "Windows 다운로드",
@@ -285,8 +285,6 @@
   const langToggle = document.getElementById("lang-toggle");
   const langPopover = document.getElementById("lang-popover");
   const langOptions = [...document.querySelectorAll(".lang-option")];
-  const navCta = document.querySelector(".nav-cta");
-  let navCtaReady = false;
   let currentLang = "zh";
 
   const at = (lang, key) =>
@@ -307,9 +305,8 @@
     });
   };
 
-  const applyLanguage = (lang) => {
+  const applyLanguage = (lang, persist = true) => {
     if (!COPY[lang]) lang = "zh";
-    const ctaFrom = navCta ? navCta.getBoundingClientRect().width : 0;
     currentLang = lang;
     const copy = COPY[lang];
     document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
@@ -322,22 +319,12 @@
     });
     if (langToggle) langToggle.setAttribute("aria-label", copy.nav.lang);
     if (langPopover) langPopover.setAttribute("aria-label", copy.nav.lang);
-    if (navCta) {
-      navCta.style.width = "auto";
-      const ctaTo = navCta.getBoundingClientRect().width;
-      if (!navCtaReady) {
-        navCtaReady = true;
-        navCta.style.width = `${ctaTo}px`;
-      } else {
-        navCta.style.width = `${ctaFrom}px`;
-        void navCta.offsetWidth;
-        navCta.style.width = `${ctaTo}px`;
+    if (persist) {
+      try {
+        localStorage.setItem("jishi-lang", lang);
+      } catch (_) {
+        /* storage can be unavailable; the page still works */
       }
-    }
-    try {
-      localStorage.setItem("jishi-lang", lang);
-    } catch (_) {
-      /* storage can be unavailable; the page still works */
     }
   };
 
@@ -348,18 +335,17 @@
       return null;
     }
   })();
-  const browserLang = (navigator.language || "zh").slice(0, 2).toLowerCase();
-  applyLanguage(stored && COPY[stored] ? stored : COPY[browserLang] ? browserLang : "zh");
+  applyLanguage(stored && COPY[stored] ? stored : "zh", false);
 
-  const switchLanguage = (lang) => {
+  const switchLanguage = (lang, persist = true) => {
     if (!COPY[lang] || lang === currentLang) return;
     if (reduceMotion.matches) {
-      applyLanguage(lang);
+      applyLanguage(lang, persist);
       return;
     }
     document.documentElement.classList.add("lang-switching");
     window.setTimeout(() => {
-      applyLanguage(lang);
+      applyLanguage(lang, persist);
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
           document.documentElement.classList.remove("lang-switching");
@@ -367,6 +353,19 @@
       });
     }, 180);
   };
+
+  if (!stored) {
+    fetch("/cdn-cgi/trace", { cache: "no-store" })
+      .then((response) => (response.ok ? response.text() : ""))
+      .then((text) => {
+        const match = text.match(/^loc=([A-Z]{2})$/m);
+        if (!match) return;
+        const language =
+          { CN: "zh", HK: "zh", MO: "zh", TW: "zh", JP: "ja", KR: "ko" }[match[1]] || "en";
+        if (language !== currentLang) switchLanguage(language, false);
+      })
+      .catch(() => {});
+  }
 
   if (langMenu && langToggle && langPopover && langOptions.length) {
     let closeTimer = 0;
@@ -404,7 +403,7 @@
 
     langOptions.forEach((option, index) => {
       option.addEventListener("click", () => {
-        switchLanguage(option.dataset.lang);
+        switchLanguage(option.dataset.lang, true);
         setLangOpen(false);
         langToggle.focus();
       });
