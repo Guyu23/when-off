@@ -1,0 +1,10 @@
+/target/
+/tools/convert-shader/target/
+/dist/
+
+/target-shot/
+/target-v2/
+/target-capture/
+/work/
+/tools/font-src/*.otf
+.wrangler/
