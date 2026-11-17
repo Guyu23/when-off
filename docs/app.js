@@ -9,7 +9,7 @@
       },
       brand: "几时下班",
       skip: "跳到主要内容",
-      nav: { brandAria: "几时下班，回到顶部", lang: "语言" },
+      nav: { brandAria: "几时下班，回到顶部", lang: "语言", download: "下载" },
       hero: {
         title: "漂亮的计时卡片",
         download: "下载 Windows 版",
@@ -78,7 +78,7 @@
       },
       brand: "When Off",
       skip: "Skip to content",
-      nav: { brandAria: "When Off, back to top", lang: "Language" },
+      nav: { brandAria: "When Off, back to top", lang: "Language", download: "Download" },
       hero: {
         title: "A pretty little timer.",
         download: "Download for Windows",
@@ -147,7 +147,7 @@
       },
       brand: "何時に退勤",
       skip: "本文へ",
-      nav: { brandAria: "何時に退勤、トップへ", lang: "言語" },
+      nav: { brandAria: "何時に退勤、トップへ", lang: "言語", download: "ダウンロード" },
       hero: {
         title: "きれいなタイマーカード。",
         download: "Windows 版をダウンロード",
@@ -216,7 +216,7 @@
       },
       brand: "몇 시 퇴근",
       skip: "본문으로",
-      nav: { brandAria: "몇 시 퇴근, 맨 위로", lang: "언어" },
+      nav: { brandAria: "몇 시 퇴근, 맨 위로", lang: "언어", download: "다운로드" },
       hero: {
         title: "예쁜 타이머 카드.",
         download: "Windows 다운로드",
@@ -354,17 +354,28 @@
     }, 180);
   };
 
+  let languageChosen = false;
+
   if (!stored) {
-    fetch("/cdn-cgi/trace", { cache: "no-store" })
-      .then((response) => (response.ok ? response.text() : ""))
-      .then((text) => {
-        const match = text.match(/^loc=([A-Z]{2})$/m);
-        if (!match) return;
-        const language =
-          { CN: "zh", HK: "zh", MO: "zh", TW: "zh", JP: "ja", KR: "ko" }[match[1]] || "en";
-        if (language !== currentLang) switchLanguage(language, false);
-      })
-      .catch(() => {});
+    const detectRegion = () => {
+      fetch("/cdn-cgi/trace", { cache: "no-store", priority: "low" })
+        .then((response) => (response.ok ? response.text() : ""))
+        .then((text) => {
+          if (languageChosen) return;
+          const match = text.match(/^loc=([A-Z]{2})$/m);
+          if (!match) return;
+          const language =
+            { CN: "zh", HK: "zh", MO: "zh", TW: "zh", JP: "ja", KR: "ko" }[match[1]] || "en";
+          if (languageChosen || language === currentLang) return;
+          applyLanguage(language, false);
+        })
+        .catch(() => {});
+    };
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(detectRegion, { timeout: 2000 });
+    } else {
+      window.addEventListener("load", detectRegion, { once: true });
+    }
   }
 
   if (langMenu && langToggle && langPopover && langOptions.length) {
@@ -403,6 +414,7 @@
 
     langOptions.forEach((option, index) => {
       option.addEventListener("click", () => {
+        languageChosen = true;
         switchLanguage(option.dataset.lang, true);
         setLangOpen(false);
         langToggle.focus();
