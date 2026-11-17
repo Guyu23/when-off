@@ -355,16 +355,23 @@
   };
 
   if (!stored) {
-    fetch("/cdn-cgi/trace", { cache: "no-store" })
-      .then((response) => (response.ok ? response.text() : ""))
-      .then((text) => {
-        const match = text.match(/^loc=([A-Z]{2})$/m);
-        if (!match) return;
-        const language =
-          { CN: "zh", HK: "zh", MO: "zh", TW: "zh", JP: "ja", KR: "ko" }[match[1]] || "en";
-        if (language !== currentLang) switchLanguage(language, false);
-      })
-      .catch(() => {});
+    const detectRegion = () => {
+      fetch("/cdn-cgi/trace", { cache: "no-store", priority: "low" })
+        .then((response) => (response.ok ? response.text() : ""))
+        .then((text) => {
+          const match = text.match(/^loc=([A-Z]{2})$/m);
+          if (!match) return;
+          const language =
+            { CN: "zh", HK: "zh", MO: "zh", TW: "zh", JP: "ja", KR: "ko" }[match[1]] || "en";
+          if (language !== currentLang) applyLanguage(language, false);
+        })
+        .catch(() => {});
+    };
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(detectRegion, { timeout: 2000 });
+    } else {
+      window.addEventListener("load", detectRegion, { once: true });
+    }
   }
 
   if (langMenu && langToggle && langPopover && langOptions.length) {
