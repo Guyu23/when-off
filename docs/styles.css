@@ -269,6 +269,22 @@ html.lang-switching footer {
   color: var(--green);
   font-size: 11px;
 }
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 17px;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: transform 0.25s var(--ease), background-color 0.25s var(--ease);
+}
+.nav-cta:hover { transform: translateY(-1px); background: #f4f8ff; }
 /* Buttons */
 .btn {
   display: inline-flex;
@@ -737,14 +753,6 @@ footer {
 }
 .js .reveal.is-in { opacity: 1; transform: none; }
 
-/* Below-fold sections stay out of the first layout and paint. */
-.themes,
-.download,
-.faq {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 720px;
-}
-
 @media (max-width: 1000px) {
   .download-panel { grid-template-columns: minmax(0, 1fr); gap: 26px; }
   .download-actions { max-width: 420px; }
@@ -762,6 +770,7 @@ footer {
   .lang-toggle svg { width: 20px; height: 20px; }
   .nav-icon { width: 32px; height: 32px; }
   .nav-icon svg { width: 20px; height: 20px; }
+  .nav-cta { height: 32px; padding: 0 13px; font-size: 12.5px; }
   .hero { min-height: auto; padding: 108px 0 48px; }
   .hero h1 { font-size: clamp(40px, 10.5vw, 56px); }
   .hero-actions { margin-top: 24px; }
@@ -825,6 +834,7 @@ footer {
   .state:hover .state-shot img,
   .theme-card:hover img { transform: none; }
   .btn,
+  .nav-cta,
   .plus::before,
   .plus::after { transition: none; }
 }
